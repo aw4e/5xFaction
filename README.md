@@ -39,7 +39,7 @@ This creates a dynamic metagame where the strongest faction can become the most 
 
 This project is built with a modern, performance-first stack:
 
--   **Framework**: [Next.js 15](https://nextjs.org/) (App Router)
+-   **Framework**: [Next.js 16](https://nextjs.org/) (App Router)
 -   **Language**: [TypeScript](https://www.typescriptlang.org/)
 -   **Styling**: [Tailwind CSS](https://tailwindcss.com/)
 -   **Components**: [shadcn/ui](https://ui.shadcn.com/) (Radix UI)
