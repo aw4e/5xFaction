@@ -1,7 +1,5 @@
 # KALI-YUGA: THE LAST INK
 
-![Project Banner](public/images/kage-shadow.jpg) *Note: Replace with actual banner if available*
-
 **KALI-YUGA** is a revolutionary no-loss DeFi protocol built on **Arbitrum** that transforms yield farming into an epic strategic battle. Enter the ultimate arena where five legendary factions battle for yield dominance.
 
 > **Pure Strategy. No Luck. Just Skill.**
