@@ -142,12 +142,29 @@ export default function ArenaPage() {
 
   useEffect(() => {
     if (approveSuccess && pendingStakeAmount) {
-      refetchAllowance().then(() => {
-        resetApprove()
-        setActionStep("staking")
-        stakeInk(pendingStakeAmount)
+      const performStakeAfterApproval = async () => {
+        // Wait for blockchain state to update (important for RPC nodes to sync)
+        await new Promise(resolve => setTimeout(resolve, 2500))
+        
+        // Refetch allowance to verify approval was successful
+        const { data: newAllowance } = await refetchAllowance()
+        
+        const requiredAmount = parseUnits(pendingStakeAmount, 6)
+        
+        // Verify allowance is sufficient before staking
+        if (newAllowance && newAllowance >= requiredAmount) {
+          resetApprove()
+          setActionStep("staking")
+          stakeInk(pendingStakeAmount)
+        } else {
+          console.error("Allowance verification failed after approval. Please try again.")
+          resetApprove()
+          setActionStep("idle")
+        }
         setPendingStakeAmount(null)
-      })
+      }
+      
+      performStakeAfterApproval()
     }
   }, [approveSuccess, pendingStakeAmount])
 
@@ -247,10 +264,22 @@ export default function ArenaPage() {
 
     if (!depositAmount || parseFloat(depositAmount) <= 0) return
 
-    // Always approve first, then stake after approval
-    setActionStep("approving")
-    setPendingStakeAmount(depositAmount)
-    approve(depositAmount)
+    // Always refresh allowance before checking to ensure we have fresh data
+    const { data: freshAllowance } = await refetchAllowance()
+    
+    const requiredAmount = parseUnits(depositAmount, 6)
+    
+    // Check with fresh allowance data
+    if (freshAllowance && freshAllowance >= requiredAmount) {
+      // Already has sufficient allowance, directly stake
+      setActionStep("staking")
+      stakeInk(depositAmount)
+    } else {
+      // Need approval first (unlimited), then stake after approval
+      setActionStep("approving")
+      setPendingStakeAmount(depositAmount)
+      approve() // Unlimited approval - no amount needed
+    }
   }
 
   const handleWithdraw = () => {

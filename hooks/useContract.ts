@@ -137,13 +137,16 @@ export function useApproveUSDC() {
   const { writeContract, data: hash, isPending, error, reset } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
 
-  const approve = (amount: string) => {
-    const parsedAmount = parseUnits(amount, 6);
+  const approve = () => {
+    console.log("[approve] Approving USDC for FiveFaction:", FIVE_FACTION_ADDRESS);
+    // Use unlimited approval for better UX - user only needs to approve once
     writeContract({
       address: MOCK_USDC_ADDRESS,
       abi: MOCK_USDC_ABI,
       functionName: "approve",
-      args: [FIVE_FACTION_ADDRESS, parsedAmount],
+      args: [FIVE_FACTION_ADDRESS, maxUint256],
+      // Specify gas manually to bypass estimation issues
+      gas: BigInt(150000),
     });
   };
 
@@ -172,11 +175,31 @@ export function useStakeInk() {
 
   const stakeInk = (amount: string) => {
     const parsedAmount = parseUnits(amount, 6);
+    console.log("[stakeInk] Attempting to stake:", amount, "USDC (raw:", parsedAmount.toString(), ")");
     writeContract({
       address: FIVE_FACTION_ADDRESS,
       abi: FIVE_FACTION_ABI,
       functionName: "stakeInk",
       args: [parsedAmount],
+      // Specify gas manually to bypass estimation issues
+      gas: BigInt(500000),
+    }, {
+      onError: (err) => {
+        console.error("[stakeInk] Transaction failed:", err);
+        // Try to parse the revert reason
+        const errorMessage = err.message || String(err);
+        if (errorMessage.includes("DepositPhaseClosed")) {
+          console.error("[stakeInk] Reason: Deposit phase is closed. Wait for next epoch.");
+        } else if (errorMessage.includes("JoinClanFirst")) {
+          console.error("[stakeInk] Reason: You must join a clan first.");
+        } else if (errorMessage.includes("AmountZero")) {
+          console.error("[stakeInk] Reason: Amount cannot be zero.");
+        } else if (errorMessage.includes("ERC20InsufficientAllowance") || errorMessage.includes("0xfb8f41b2")) {
+          console.error("[stakeInk] Reason: Insufficient token allowance. Need to approve FiveFaction first.");
+        } else if (errorMessage.includes("ERC20InsufficientBalance")) {
+          console.error("[stakeInk] Reason: Insufficient USDC balance.");
+        }
+      }
     });
   };
 

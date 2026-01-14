@@ -4,6 +4,7 @@ import { arbitrumSepolia } from 'wagmi/chains';
 export const wagmiConfig = createConfig({
   chains: [arbitrumSepolia],
   transports: {
-    [arbitrumSepolia.id]: http('https://arbitrum-sepolia-testnet.api.pocket.network'),
+    // Using official Arbitrum Sepolia RPC
+    [arbitrumSepolia.id]: http('https://sepolia-rollup.arbitrum.io/rpc'),
   },
 });
